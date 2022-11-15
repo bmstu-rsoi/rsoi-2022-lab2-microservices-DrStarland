@@ -195,7 +195,7 @@ build-iPhoneSimulator/
 *.dll
 
 # Fortran module files
-*.mod
+# *.mod
 *.smod
 
 # Compiled Static libraries
@@ -524,7 +524,7 @@ _deps
 # Output of the go coverage tool, specifically when used with LiteIDE
 
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
 
 ### Qt template
 # C++ objects and libs
