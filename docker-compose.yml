@@ -14,48 +14,48 @@ services:
     ports:
       - "5432:5432"
 
-  gateway:
-    build:
-      context: src/gateway
-    ports:
-      - "8080:8080"
-    depends_on:
-      - flights
-      - privileges
-      - tickets
+  # gateway:
+  #   build:
+  #     context: src/gateway
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - flights
+  #     - privileges
+  #     - tickets
 
-  flights:
-    build:
-      context: src/flights
-    ports:
-      - "8060:8060"
-    depends_on:
-      - postgres
-    links: 
-      - postgres
-    restart: on-failure
+  # flights:
+  #   build:
+  #     context: src/flights
+  #   ports:
+  #     - "8060:8060"
+  #   depends_on:
+  #     - postgres
+  #   links: 
+  #     - postgres
+  #   restart: on-failure
 
-  tickets:
-    build:
-      context: src/tickets
-    ports:
-      - "8070:8070"
-    depends_on:
-      - postgres
-    links: 
-      - postgres
-    restart: on-failure
+  # tickets:
+  #   build:
+  #     context: src/tickets
+  #   ports:
+  #     - "8070:8070"
+  #   depends_on:
+  #     - postgres
+  #   links: 
+  #     - postgres
+  #   restart: on-failure
 
-  privileges:
-    build:
-      context: src/privileges
-    ports:
-      - "8050:8050"
-    depends_on:
-      - postgres
-    links: 
-      - postgres
-    restart: on-failure
+  # privileges:
+  #   build:
+  #     context: src/privileges
+  #   ports:
+  #     - "8050:8050"
+  #   depends_on:
+  #     - postgres
+  #   links: 
+  #     - postgres
+  #   restart: on-failure
   
 # TODO добавить сервисы
 
