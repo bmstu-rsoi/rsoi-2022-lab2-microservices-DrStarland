@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -20,7 +19,7 @@ type FlightsHandler struct {
 }
 
 func (h *FlightsHandler) GetAllFlight(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	flight, err := h.FlightRepo.GetAllFlights()
+	flights, err := h.FlightRepo.GetAllFlights()
 	if err != nil {
 		log.Printf("failed to get flghts: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -28,13 +27,7 @@ func (h *FlightsHandler) GetAllFlight(w http.ResponseWriter, r *http.Request, ps
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(flight); err != nil {
-		log.Printf("Failed to encode flight: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+	myjson.JsonResponce(w, http.StatusOK, flights)
 }
 
 func (h *FlightsHandler) GetFlight(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -49,13 +42,7 @@ func (h *FlightsHandler) GetFlight(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(flight); err != nil {
-		log.Printf("Failed to encode flight: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+	myjson.JsonResponce(w, http.StatusOK, flight)
 }
 
 func (h *FlightsHandler) GetAirport(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
