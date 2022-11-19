@@ -1,0 +1,16 @@
+FROM golang:1.19 AS builder
+
+ENV GO111MODULE=on
+
+WORKDIR /app
+
+COPY . .
+
+RUN go mod tidy
+
+RUN ls 
+RUN go build -o app ./cmd/flights
+
+EXPOSE 8060
+RUN ls
+ENTRYPOINT ["./app"]
