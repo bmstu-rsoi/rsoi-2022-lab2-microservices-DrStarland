@@ -52,7 +52,7 @@ func main() {
 
 	router.GET("/api/v1/flights", mid.AccessLog(allHandler.GetAllFlight, logger))
 	router.GET("/api/v1/flight/:flightNumber", mid.AccessLog(allHandler.GetFlight, logger))
-	router.GET("/api/v1/airport/:airportID", mid.AccessLog(allHandler.GetAirport, logger))
+	// router.GET("/api/v1/airport/:airportID", mid.AccessLog(allHandler.GetAirport, logger))
 	router.GET("/manage/health", HealthOK)
 
 	ServerAddress := os.Getenv("PORT")
