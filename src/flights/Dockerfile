@@ -1,18 +1,16 @@
-# syntax=docker/dockerfile:1
+FROM golang:1.19 AS builder
 
-FROM golang:1.17
+ENV GO111MODULE=on
 
 WORKDIR /app
 
 COPY . .
-RUN go mod download
 
-RUN mkdir -p logs
-RUN mkdir -p temp
+RUN go mod tidy
 
-RUN go build -o ./app
+RUN ls 
+RUN go build -o app ./cmd/flights
 
 EXPOSE 8060
-ENV PORT=8060
-
-CMD [ "./app" ]
+RUN ls
+ENTRYPOINT ["./app"]

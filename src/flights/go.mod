@@ -1,4 +1,4 @@
-module github.com/rsoi-2022-lab2-microservices-DrStarland
+module flights
 
 go 1.18
 
@@ -10,6 +10,6 @@ require (
 )
 
 require (
-	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/atomic v1.7.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 )

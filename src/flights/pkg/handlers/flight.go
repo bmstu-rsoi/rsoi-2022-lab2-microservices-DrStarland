@@ -5,10 +5,11 @@ import (
 	"log"
 	"net/http"
 
+	"flights/pkg/models/airport"
+	"flights/pkg/models/flight"
+	"flights/pkg/myjson"
+
 	"github.com/julienschmidt/httprouter"
-	"github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/models/airport"
-	"github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/models/flight"
-	"github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/myjson"
 	"go.uber.org/zap"
 )
 

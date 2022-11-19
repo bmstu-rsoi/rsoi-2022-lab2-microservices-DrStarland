@@ -21,10 +21,13 @@ import (
 
 func CreateConnection() (*sql.DB, error) {
 	port := 5432
-	host := "localhost"
+	host := "postgres"
 
-	dsn := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
-		host, port, "postgres", "flights", "postgres")
+	dsn :=
+		fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
+			host, port, "postgres", "flights", "postgres")
+	// fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=disable",
+	// 	"postgres", 5432, "postgres", "flights", "postgres")
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {

@@ -3,14 +3,18 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/database"
-	"github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/handlers"
-	mid "github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/middleware"
-	"github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/models/airport"
-	"github.com/rsoi-2022-lab2-microservices-DrStarland/src/flights/pkg/models/flight"
+	"flights/pkg/database"
+
+	"flights/pkg/handlers"
+
+	mid "flights/pkg/middleware"
+	"flights/pkg/models/airport"
+	"flights/pkg/models/flight"
+
 	"go.uber.org/zap"
 )
 
@@ -21,7 +25,7 @@ func HealthOK(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func main() {
 	db, err := database.CreateConnection()
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Println(err.Error())
 	}
 	defer db.Close()
 
@@ -51,7 +55,10 @@ func main() {
 	router.GET("/api/v1/airport/:airportID", mid.AccessLog(allHandler.GetAirport, logger))
 	router.GET("/manage/health", HealthOK)
 
-	ServerAddress := ":8080" // os.Getenv("PORT")
+	ServerAddress := os.Getenv("PORT")
+	if ServerAddress == "" || ServerAddress == ":80" {
+		ServerAddress = ":8080"
+	}
 
 	logger.Infow("starting server",
 		"type", "START",
