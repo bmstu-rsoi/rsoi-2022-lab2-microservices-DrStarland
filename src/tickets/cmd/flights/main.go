@@ -4,16 +4,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"tickets/pkg/database"
+	"tickets/pkg/handlers"
+	"tickets/pkg/models/ticket"
 
 	"github.com/julienschmidt/httprouter"
 
-	"flights/pkg/database"
-
-	"flights/pkg/handlers"
-
-	mid "flights/pkg/middleware"
-	"flights/pkg/models/airport"
-	"flights/pkg/models/flight"
+	mid "tickets/pkg/middleware"
 
 	"go.uber.org/zap"
 )
@@ -33,13 +30,11 @@ func main() {
 	defer zapLogger.Sync() // flushes buffer, if any
 	logger := zapLogger.Sugar()
 
-	repoFlight := flight.NewPostgresRepo(db)
-	repoAirport := airport.NewPostgresRepo(db)
+	repoTicket := ticket.NewPostgresRepo(db)
 
-	allHandler := &handlers.FlightsHandler{
+	ticketHandler := &handlers.TicketsHandler{
 		Logger:      logger,
-		FlightRepo:  repoFlight,
-		AirportRepo: repoAirport,
+		TicketsRepo: repoTicket,
 	}
 
 	router := httprouter.New()
@@ -52,8 +47,8 @@ func main() {
 
 	// router.HandleFunc("/api/v1/tickets/{username}", GetTicketsByUsernameHandler).Methods("GET", "OPTIONS")
 
-	router.GET("/api/v1/tickets", mid.AccessLog(allHandler.GetAllFlight, logger))
-	router.POST("/api/v1/tickets/:username", mid.AccessLog(allHandler.GetFlight, logger))
+	router.GET("/api/v1/tickets", mid.AccessLog(ticketHandler.BuyTicket, logger))
+	router.POST("/api/v1/tickets/:username", mid.AccessLog(ticketHandler.GetTicketsByUsername, logger))
 
 	router.GET("/manage/health", HealthOK)
 

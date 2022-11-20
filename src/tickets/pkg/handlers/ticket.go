@@ -1,17 +1,24 @@
 package handlers
 
 import (
-	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"tickets/pkg/models/ticket"
+	"tickets/pkg/myjson"
 
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
+	"go.uber.org/zap"
 )
 
-func GetTicketsByUsernameHandler(w http.ResponseWriter, r *http.Request) {
-	ticketRepo := repository.TicketRepository{}
-	params := mux.Vars(r)
-	tickets, err := ticketRepo.GetTicketsByUsername(params["username"])
+type TicketsHandler struct {
+	Logger      *zap.SugaredLogger
+	TicketsRepo ticket.Repository
+}
+
+func (h *TicketsHandler) GetTicketsByUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	username := ps.ByName("username")
+	tickets, err := h.TicketsRepo.GetByUsername(username)
 	if err != nil {
 		log.Printf("Failed to get ticket: %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -19,28 +26,30 @@ func GetTicketsByUsernameHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(tickets); err != nil {
-		log.Printf("Failed to encode ticket: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+	myjson.JsonResponce(w, http.StatusOK, tickets)
 }
 
-func BuyTicketHandler(w http.ResponseWriter, r *http.Request) {
-	var ticket models.Ticket
-
-	err := json.NewDecoder(r.Body).Decode(&ticket)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+func (h *TicketsHandler) BuyTicket(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	if r.Header.Get("Content-Type") != "application/json" {
+		myjson.JsonError(w, http.StatusBadRequest, "unknown payload")
 		return
 	}
 
-	ticketRepo := repository.TicketRepository{}
-	if err := ticketRepo.CreateTicket(&ticket); err != nil {
+	body, _ := ioutil.ReadAll(r.Body)
+	r.Body.Close()
+
+	ticket := &ticket.Ticket{}
+	err := myjson.From(body, ticket)
+
+	if err != nil {
+		myjson.JsonError(w, http.StatusBadRequest, "cant unpack payload")
+		return
+	}
+
+	if err := h.TicketsRepo.Add(ticket); err != nil {
 		log.Printf("Failed to create ticket: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+
+		myjson.JsonError(w, http.StatusInternalServerError, "Failed to create ticket: "+err.Error())
 		return
 	}
 
