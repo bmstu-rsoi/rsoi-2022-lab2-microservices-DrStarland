@@ -24,14 +24,17 @@ services:
   #     - privileges
   #     - tickets
 
-  # ticket-service:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.ticket-service
-  #   environment:
-  #     PORT: "8070"
-  #   ports:
-  #     - "8070:8070"
+  ticket-service:
+    build:
+      context: src/tickets
+      dockerfile: Dockerfile
+    container_name: testum_tickets
+    environment:
+      PORT: ":8070"
+    ports:
+      - "8070:8070"
+    depends_on:
+      - postgres
 
   flight-service:
     build:

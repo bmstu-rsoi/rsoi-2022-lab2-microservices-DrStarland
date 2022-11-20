@@ -8,9 +8,7 @@ COPY . .
 
 RUN go mod tidy
 
-RUN ls 
-RUN go build -o app ./cmd/flights
+RUN go build -o app ./cmd/tickets
 
-EXPOSE 8060
-RUN ls
+EXPOSE 8070
 ENTRYPOINT ["./app"]

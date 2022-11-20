@@ -17,17 +17,6 @@ type Ticket struct {
 	Status       string `json:"status" valid:"type(string)"`
 }
 
-// func (p *Ticket) Validate() error {
-// 	return validation.ValidateStruct(
-// 		p,
-// 		validation.Field(&p.TicketUID, is.UUID),
-// 		validation.Field(&p.Username, validation.Required),
-// 		validation.Field(&p.FlightNumber, validation.Required),
-// 		validation.Field(&p.Price, validation.Required, validation.Min(0)),
-// 		validation.Field(&p.Status, validation.Required),
-// 	)
-// }
-
 func (p *Ticket) Validate() error {
 	_, err := govalidator.ValidateStruct(p)
 	if err != nil {
@@ -38,7 +27,7 @@ func (p *Ticket) Validate() error {
 			}
 		}
 	}
-	return err // mya?
+	return err
 }
 
 type Repository interface {
