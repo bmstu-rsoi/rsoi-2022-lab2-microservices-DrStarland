@@ -7,13 +7,10 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"flights/pkg/database"
+	"gateway/pkg/database"
+	"gateway/pkg/handlers"
 
-	"flights/pkg/handlers"
-
-	mid "flights/pkg/middleware"
-	"flights/pkg/models/airport"
-	"flights/pkg/models/flight"
+	mid "gateway/pkg/middleware"
 
 	"go.uber.org/zap"
 )
@@ -33,14 +30,11 @@ func main() {
 	defer zapLogger.Sync() // flushes buffer, if any
 	logger := zapLogger.Sugar()
 
-	repoFlight := flight.NewPostgresRepo(db)
-	repoAirport := airport.NewPostgresRepo(db)
-
-	allHandler := &handlers.FlightsHandler{
-		Logger:      logger,
-		FlightRepo:  repoFlight,
-		AirportRepo: repoAirport,
-	}
+	//	repoFlight := flight.NewPostgresRepo(db)
+	// allHandler := &handlers.FlightsHandler{
+	// 	Logger:     logger,
+	// 	FlightRepo: repoFlight,
+	// }
 
 	router := httprouter.New()
 	router.PanicHandler = func(w http.ResponseWriter, r *http.Request, err interface{}) {
@@ -50,9 +44,21 @@ func main() {
 		}
 	}
 
-	router.GET("/api/v1/flights", mid.AccessLog(allHandler.GetAllFlight, logger))
-	router.GET("/api/v1/flight/:flightNumber", mid.AccessLog(allHandler.GetFlight, logger))
-	router.GET("/api/v1/airport/:airportID", mid.AccessLog(allHandler.GetAirport, logger))
+	gs := &handlers.GatewayHandler{
+		TicketServiceAddress: "http://testum_tickets:8070",
+		FlightServiceAddress: "http://testum_flights:8060",
+		BonusServiceAddress:  "http://testum_bonus:8050",
+		Logger:               logger,
+	}
+
+	router.GET("/api/v1/flights", mid.AccessLog(gs.GetAllFlights, logger))
+	router.GET("/api/v1/me", mid.AccessLog(gs.GetUserInfo, logger))
+	router.GET("/api/v1/tickets", mid.AccessLog(gs.GetUserTickets, logger))
+	router.GET("/api/v1/tickets/:ticketUID", mid.AccessLog(gs.GetUserTicket, logger))
+	router.POST("/api/v1/tickets", mid.AccessLog(gs.BuyTicket, logger))
+	router.DELETE("/api/v1/tickets/:ticketUID", mid.AccessLog(gs.CancelTicket, logger))
+	router.GET("/api/v1/privilege", mid.AccessLog(gs.GetPrivilege, logger))
+
 	router.GET("/manage/health", HealthOK)
 
 	ServerAddress := os.Getenv("PORT")

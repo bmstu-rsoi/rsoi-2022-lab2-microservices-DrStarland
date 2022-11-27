@@ -2,72 +2,136 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"gateway/pkg/models/airport"
+	"gateway/pkg/myjson"
+	"io"
+	"io/ioutil"
 	"net/http"
-
-	"flights/pkg/models/airport"
-	"flights/pkg/models/flight"
-	"flights/pkg/myjson"
-
-	"github.com/julienschmidt/httprouter"
-	"go.uber.org/zap"
+	"time"
 )
 
-type FlightsHandler struct {
-	Logger      *zap.SugaredLogger
-	FlightRepo  flight.Repository
-	AirportRepo airport.Repository
+func GetFlight(flightServiceAddress, flightNumber string) (*airport.Flight, error) {
+	requestURL := fmt.Sprintf("%s/api/v1/flight/%s", flightServiceAddress, flightNumber)
+
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	if err != nil {
+		fmt.Println("Failed to create an http request")
+		return nil, err
+	}
+
+	client := &http.Client{
+		Timeout: 10 * time.Minute,
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Failed request to flight service: %w", err)
+	}
+
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			fmt.Println("Failed to close response body")
+		}
+	}(res.Body)
+
+	flight := &airport.Flight{}
+	if err = json.NewDecoder(res.Body).Decode(flight); err != nil {
+		return nil, fmt.Errorf("Failed to decode response: %w", err)
+	}
+
+	return flight, nil
 }
 
-func (h *FlightsHandler) GetAllFlight(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	flight, err := h.FlightRepo.GetAllFlights()
+func (h *GatewayHandler) GetAllFlightsInfo(flightServiceAddress string) (*[]airport.FlightInfo, error) {
+	requestURL := fmt.Sprintf("%s/api/v1/flights", flightServiceAddress)
+	h.Logger.Info(flightServiceAddress)
+
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	//h.Logger.Info(req, err)
 	if err != nil {
-		log.Printf("failed to get flghts: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		h.Logger.Errorln("Failed to create an http request")
+		return nil, err
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(flight); err != nil {
-		log.Printf("Failed to encode flight: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	client := &http.Client{
+		Timeout: 1 * time.Minute,
 	}
 
-	w.WriteHeader(http.StatusOK)
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Failed request to flight service: %w", err)
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		h.Logger.Errorln(err.Error())
+	}
+	res.Body.Close()
+
+	flights := new([]airport.Flight)
+
+	if err = myjson.From(body, flights); err != nil {
+		h.Logger.Infoln("BEDA ", flights, string(body))
+		return nil, fmt.Errorf("Failed to decode response: %w", err)
+	}
+
+	flightsInfo := make([]airport.FlightInfo, 0)
+	for _, flight := range *flights {
+		airportFrom, err := h.GetAirport(flightServiceAddress, flight.FromAirportId)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get airport: %s", err)
+		}
+
+		airportTo, err := h.GetAirport(flightServiceAddress, flight.ToAirportId)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to get airport: %s", err)
+		}
+
+		fInfo := airport.FlightInfo{
+			FlightNumber: flight.FlightNumber,
+			FromAirport:  fmt.Sprintf("%s %s", airportFrom.City, airportFrom.Name),
+			ToAirport:    fmt.Sprintf("%s %s", airportTo.City, airportTo.Name),
+			Date:         flight.Date,
+			Price:        flight.Price,
+		}
+
+		flightsInfo = append(flightsInfo, fInfo)
+	}
+
+	return &flightsInfo, nil
 }
 
-func (h *FlightsHandler) GetFlight(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	number := ps.ByName("flightNumber")
-	log.Println(number)
-	flight, err := h.FlightRepo.GetFlightByNumber(number)
+func (h *GatewayHandler) GetAirport(flightServiceAddress string, airportID int) (*airport.Airport, error) {
+	requestURL := fmt.Sprintf("%s/api/v1/airport/%d", flightServiceAddress, airportID)
 
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
-		log.Printf("Failed to get flights: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		h.Logger.Errorln("Failed to create an http request")
+		return nil, err
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(flight); err != nil {
-		log.Printf("Failed to encode flight: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	client := &http.Client{
+		Timeout: 10 * time.Minute,
 	}
 
-	w.WriteHeader(http.StatusOK)
-}
-
-func (h *FlightsHandler) GetAirport(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id := ps.ByName("airportID")
-	log.Println(id)
-	airport, err := h.AirportRepo.GetAirportByID(id)
+	res, err := client.Do(req)
 	if err != nil {
-		log.Printf("failed to get flghts: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("Failed request to flight service: %w", err)
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	myjson.JsonResponce(w, http.StatusOK, airport)
+	body, _ := ioutil.ReadAll(res.Body)
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			h.Logger.Errorln("Failed to close response body")
+		}
+	}(res.Body)
+
+	airport := &airport.Airport{}
+
+	if err = myjson.From(body, airport); err != nil {
+		return nil, fmt.Errorf("Failed to decode response: %w", err)
+	}
+
+	return airport, nil
 }

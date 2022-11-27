@@ -7,10 +7,8 @@ WORKDIR /app
 COPY . .
 
 RUN go mod tidy
+RUN go build -o app ./cmd/gateway
 
-RUN ls 
-RUN go build -o app ./cmd/flights
+EXPOSE 8080
 
-EXPOSE 8060
-RUN ls
 ENTRYPOINT ["./app"]
