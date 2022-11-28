@@ -30,6 +30,7 @@ func JsonError(w http.ResponseWriter, status int, msg string) {
 }
 
 func JsonResponce(w http.ResponseWriter, status int, msg any) {
+	w.Header().Add("Content-Type", "application/json")
 	respJSON, err := To(msg)
 	if err != nil {
 		log.Println(err.Error())

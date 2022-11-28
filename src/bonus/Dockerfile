@@ -7,10 +7,8 @@ WORKDIR /app
 COPY . .
 
 RUN go mod tidy
+RUN go build -o app ./cmd/bonus
 
-RUN ls 
-RUN go build -o app ./cmd/tickets
+EXPOSE 8050
 
-EXPOSE 8060
-RUN ls
 ENTRYPOINT ["./app"]

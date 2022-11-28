@@ -42,6 +42,7 @@ func (h *TicketsHandler) BuyTicket(w http.ResponseWriter, r *http.Request, ps ht
 	err := myjson.From(body, ticket)
 
 	if err != nil {
+		h.Logger.Errorln("STRANDING ", string(body))
 		myjson.JsonError(w, http.StatusBadRequest, "cant unpack payload")
 		return
 	}
@@ -50,6 +51,19 @@ func (h *TicketsHandler) BuyTicket(w http.ResponseWriter, r *http.Request, ps ht
 		log.Printf("Failed to create ticket: %s", err)
 
 		myjson.JsonError(w, http.StatusInternalServerError, "Failed to create ticket: "+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *TicketsHandler) DeleteTicket(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	ticketUID := ps.ByName("ticketUID")
+
+	if err := h.TicketsRepo.Delete(ticketUID); err != nil {
+		h.Logger.Errorln("Failed to create ticket: " + err.Error())
+
+		myjson.JsonError(w, http.StatusInternalServerError, "failed to create ticket: "+err.Error())
 		return
 	}
 

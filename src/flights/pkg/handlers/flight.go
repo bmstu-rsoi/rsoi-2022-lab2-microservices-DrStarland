@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"flights/pkg/models/airport"
@@ -21,11 +20,10 @@ type FlightsHandler struct {
 func (h *FlightsHandler) GetAllFlight(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	flights, err := h.FlightRepo.GetAllFlights()
 	if err != nil {
-		log.Printf("failed to get flghts: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		myjson.JsonError(w, http.StatusInternalServerError, "flight service error: "+err.Error())
 		return
 	}
-	w.Header().Add("Content-Type", "application/json")
+
 	myjson.JsonResponce(w, http.StatusOK, flights)
 }
 
@@ -33,11 +31,9 @@ func (h *FlightsHandler) GetFlight(w http.ResponseWriter, r *http.Request, ps ht
 	number := ps.ByName("flightNumber")
 	flight, err := h.FlightRepo.GetFlightByNumber(number)
 	if err != nil {
-		log.Printf("Failed to get flights: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		myjson.JsonError(w, http.StatusInternalServerError, "flight service error: "+err.Error())
 		return
 	}
-	w.Header().Add("Content-Type", "application/json")
 	myjson.JsonResponce(w, http.StatusOK, flight)
 }
 
@@ -45,8 +41,7 @@ func (h *FlightsHandler) GetAirport(w http.ResponseWriter, r *http.Request, ps h
 	id := ps.ByName("airportID")
 	airport, err := h.AirportRepo.GetAirportByID(id)
 	if err != nil {
-		log.Printf("failed to get flghts: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		myjson.JsonError(w, http.StatusInternalServerError, "flight service error: "+err.Error())
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")

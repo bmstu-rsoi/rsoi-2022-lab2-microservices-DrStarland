@@ -13,49 +13,28 @@ func NewPostgresRepo(db *sql.DB) *TicketPostgresRepository {
 	return &TicketPostgresRepository{DB: db}
 }
 
-// func (repo *TicketPostgresRepository) GetAllFlights() ([]*Flight, error) {
-// 	flights := make([]*Flight, 0)
-// 	rows, err := repo.DB.Query("SELECT * FROM flight;")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to execute the query: %w", err)
-// 	}
-
-// 	for rows.Next() {
-// 		f := &Flight{}
-// 		if err := rows.Scan(&f.ID, &f.FlightNumber, &f.Date, &f.FromAirportId, &f.ToAirportId, &f.Price); err != nil {
-// 			return nil, fmt.Errorf("failed to execute the query: %w", err)
-// 		}
-// 		flights = append(flights, f)
-// 	}
-// 	defer rows.Close()
-
-// 	return flights, nil
-// }
-
-// func (repo *TicketPostgresRepository) GetFlightByNumber(flightNumber string) (*Flight, error) {
-// 	flight := &Flight{}
-
-// 	err := repo.DB.
-// 		QueryRow("SELECT * FROM flight WHERE flight_number = $1;", flightNumber).
-// 		Scan(
-// 			&flight.ID,
-// 			&flight.FlightNumber,
-// 			&flight.Date,
-// 			&flight.FromAirportId,
-// 			&flight.ToAirportId,
-// 			&flight.Price,
-// 		)
-
-// 	if err != nil {
-// 		if errors.Is(err, sql.ErrNoRows) {
-// 			return flight, err
-// 		}
-// 	}
-
-// 	return flight, nil
-// }
-
 func (repo *TicketPostgresRepository) GetByUsername(username string) ([]*Ticket, error) {
+	// _tickets := make([]Ticket, 0)
+	// _rows, _ := repo.DB.Query("SELECT * FROM ticket")
+	// defer _rows.Close()
+	// for _rows.Next() {
+	// 	ticket := Ticket{}
+	// 	err := _rows.Scan(
+	// 		&ticket.ID,
+	// 		&ticket.TicketUID,
+	// 		&ticket.Username,
+	// 		&ticket.FlightNumber,
+	// 		&ticket.Price,
+	// 		&ticket.Status)
+
+	// 	if err != nil {
+	// 		break
+	// 	}
+
+	// 	_tickets = append(_tickets, ticket)
+	// }
+	// log.Println("DEATH ", _tickets)
+
 	tickets := make([]*Ticket, 0)
 	rows, err := repo.DB.Query("SELECT id, ticket_uid, username, flight_number, price, status FROM ticket WHERE username = $1;", username)
 	if err != nil {
@@ -68,7 +47,7 @@ func (repo *TicketPostgresRepository) GetByUsername(username string) ([]*Ticket,
 
 	for rows.Next() {
 		ticket := new(Ticket)
-		rows.Scan(
+		err = rows.Scan(
 			&ticket.ID,
 			&ticket.TicketUID,
 			&ticket.Username,
@@ -87,6 +66,27 @@ func (repo *TicketPostgresRepository) GetByUsername(username string) ([]*Ticket,
 }
 
 func (repo *TicketPostgresRepository) Add(ticket *Ticket) error {
+	// _tickets := make([]Ticket, 0)
+	// _rows, _ := repo.DB.Query("SELECT * FROM ticket")
+	// defer _rows.Close()
+	// for _rows.Next() {
+	// 	ticket := Ticket{}
+	// 	err := _rows.Scan(
+	// 		&ticket.ID,
+	// 		&ticket.TicketUID,
+	// 		&ticket.Username,
+	// 		&ticket.FlightNumber,
+	// 		&ticket.Price,
+	// 		&ticket.Status)
+
+	// 	if err != nil {
+	// 		break
+	// 	}
+
+	// 	_tickets = append(_tickets, ticket)
+	// }
+	// log.Println("DEATH ", _tickets)
+
 	_, err := repo.DB.Query(
 		"INSERT INTO ticket (ticket_uid, username, flight_number, price, status) VALUES ($1, $2, $3, $4, $5) RETURNING id;",
 		ticket.TicketUID,
@@ -95,6 +95,18 @@ func (repo *TicketPostgresRepository) Add(ticket *Ticket) error {
 		ticket.Price,
 		ticket.Status,
 	)
+
+	return err
+}
+
+func (repo *TicketPostgresRepository) Delete(ticketUID string) error {
+	_, err := repo.DB.Exec(
+		"DELETE FROM ticket WHERE ticket_uid = $1;",
+		ticketUID,
+	)
+	if err != nil {
+		return err
+	}
 
 	return err
 }

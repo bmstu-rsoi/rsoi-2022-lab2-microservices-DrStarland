@@ -1,16 +1,17 @@
-package handlers
+package services
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"gateway/pkg/models/airport"
+	"gateway/pkg/models/privilege"
+	"gateway/pkg/myjson"
 	"io"
 	"net/http"
 	"time"
 )
 
-func GetPrivilegeShortInfo(bonusServiceAddress, username string) (*airport.Privilege, error) {
+func GetPrivilegeShortInfo(bonusServiceAddress, username string) (*privilege.Privilege, error) {
 	requestURL := fmt.Sprintf("%s/api/v1/bonus/%s", bonusServiceAddress, username)
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
@@ -33,7 +34,7 @@ func GetPrivilegeShortInfo(bonusServiceAddress, username string) (*airport.Privi
 		}
 	}(res.Body)
 
-	privilege := &airport.Privilege{}
+	privilege := &privilege.Privilege{}
 	if res.StatusCode != http.StatusNotFound {
 		if err = json.NewDecoder(res.Body).Decode(privilege); err != nil {
 			return nil, fmt.Errorf("Failed to decode response: %s", err)
@@ -43,7 +44,7 @@ func GetPrivilegeShortInfo(bonusServiceAddress, username string) (*airport.Privi
 	return privilege, nil
 }
 
-func GetPrivilegeHistory(bonusServiceAddress string, privilegeID int) (*[]airport.PrivilegeHistory, error) {
+func GetPrivilegeHistory(bonusServiceAddress string, privilegeID int) (*[]privilege.PrivilegeHistory, error) {
 	requestURL := fmt.Sprintf("%s/api/v1/bonushistory/%d", bonusServiceAddress, privilegeID)
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
@@ -66,7 +67,7 @@ func GetPrivilegeHistory(bonusServiceAddress string, privilegeID int) (*[]airpor
 		}
 	}(res.Body)
 
-	privilegeHistory := &[]airport.PrivilegeHistory{}
+	privilegeHistory := &[]privilege.PrivilegeHistory{}
 	if res.StatusCode != http.StatusNotFound {
 		if err = json.NewDecoder(res.Body).Decode(privilegeHistory); err != nil {
 			return nil, fmt.Errorf("Failed to decode response: %s", err)
@@ -79,7 +80,7 @@ func GetPrivilegeHistory(bonusServiceAddress string, privilegeID int) (*[]airpor
 func CreatePrivilegeHistoryRecord(bonusServiceAddress, uid, date, optype string, ID, diff int) error {
 	requestURL := fmt.Sprintf("%s/api/v1/bonus", bonusServiceAddress)
 
-	record := &airport.PrivilegeHistory{
+	record := &privilege.PrivilegeHistory{
 		PrivilegeID:   ID,
 		TicketUID:     uid,
 		Date:          date,
@@ -87,7 +88,7 @@ func CreatePrivilegeHistoryRecord(bonusServiceAddress, uid, date, optype string,
 		OperationType: optype,
 	}
 
-	data, err := json.Marshal(record)
+	data, err := myjson.To(record)
 	if err != nil {
 		return fmt.Errorf("encoding error: %w", err)
 	}
@@ -102,16 +103,10 @@ func CreatePrivilegeHistoryRecord(bonusServiceAddress, uid, date, optype string,
 		Timeout: 10 * time.Minute,
 	}
 
-	res, err := client.Do(req)
+	_, err = client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed request to privilege service: %s", err)
 	}
-
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			fmt.Println("Failed to close response body")
-		}
-	}(res.Body)
 
 	return nil
 }
@@ -119,7 +114,7 @@ func CreatePrivilegeHistoryRecord(bonusServiceAddress, uid, date, optype string,
 func CreatePrivilege(bonusServiceAddress, username string, balance int) error {
 	requestURL := fmt.Sprintf("%s/api/v1/bonus/privilege", bonusServiceAddress)
 
-	record := &airport.Privilege{
+	record := &privilege.Privilege{
 		Username: username,
 		Balance:  balance,
 	}
@@ -143,12 +138,7 @@ func CreatePrivilege(bonusServiceAddress, username string, balance int) error {
 	if err != nil {
 		return fmt.Errorf("Failed request to privilege service: %s", err)
 	}
-
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			fmt.Println("Failed to close response body")
-		}
-	}(res.Body)
+	res.Body.Close()
 
 	return nil
 }

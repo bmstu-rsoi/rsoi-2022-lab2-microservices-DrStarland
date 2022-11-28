@@ -7,13 +7,12 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"flights/pkg/database"
+	"bonus/pkg/database"
 
-	"flights/pkg/handlers"
+	"bonus/pkg/handlers"
 
-	mid "flights/pkg/middleware"
-	"flights/pkg/models/airport"
-	"flights/pkg/models/flight"
+	mid "bonus/pkg/middleware"
+	"bonus/pkg/models/privilege"
 
 	"go.uber.org/zap"
 )
@@ -33,13 +32,11 @@ func main() {
 	defer zapLogger.Sync() // flushes buffer, if any
 	logger := zapLogger.Sugar()
 
-	repoFlight := flight.NewPostgresRepo(db)
-	repoAirport := airport.NewPostgresRepo(db)
+	bonusRepo := privilege.NewPostgresRepo(db)
 
-	allHandler := &handlers.FlightsHandler{
-		Logger:      logger,
-		FlightRepo:  repoFlight,
-		AirportRepo: repoAirport,
+	bonusHandler := &handlers.BonusHandler{
+		Logger:    logger,
+		BonusRepo: bonusRepo,
 	}
 
 	router := httprouter.New()
@@ -50,9 +47,11 @@ func main() {
 		}
 	}
 
-	router.GET("/api/v1/flights", mid.AccessLog(allHandler.GetAllFlight, logger))
-	router.GET("/api/v1/flight/:flightNumber", mid.AccessLog(allHandler.GetFlight, logger))
-	router.GET("/api/v1/airport/:airportID", mid.AccessLog(allHandler.GetAirport, logger))
+	router.POST("/api/v1/bonus", mid.AccessLog(bonusHandler.CreatePrivilegeHistoryHandler, logger))
+	router.POST("/api/v1/bonus/privilege", mid.AccessLog(bonusHandler.CreatePrivilegeHandler, logger))
+	router.GET("/api/v1/bonus/:username", mid.AccessLog(bonusHandler.GetPrivilegeByUsernameHandler, logger))
+	router.GET("/api/v1/bonushistory/:privilegeID", mid.AccessLog(bonusHandler.GetHistoryByIDHandler, logger))
+
 	router.GET("/manage/health", HealthOK)
 
 	ServerAddress := os.Getenv("PORT")

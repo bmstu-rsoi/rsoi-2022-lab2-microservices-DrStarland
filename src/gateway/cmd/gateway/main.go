@@ -29,7 +29,6 @@ func main() {
 	zapLogger, _ := zap.NewProduction()
 	defer zapLogger.Sync() // flushes buffer, if any
 	logger := zapLogger.Sugar()
-
 	//	repoFlight := flight.NewPostgresRepo(db)
 	// allHandler := &handlers.FlightsHandler{
 	// 	Logger:     logger,

@@ -33,4 +33,5 @@ func (p *Ticket) Validate() error {
 type Repository interface {
 	GetByUsername(flightNumber string) ([]*Ticket, error)
 	Add(*Ticket) error
+	Delete(ticketUID string) error
 }

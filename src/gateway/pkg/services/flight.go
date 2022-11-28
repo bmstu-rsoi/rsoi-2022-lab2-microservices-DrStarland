@@ -1,22 +1,24 @@
-package handlers
+package services
 
 import (
 	"encoding/json"
 	"fmt"
 	"gateway/pkg/models/airport"
+	"gateway/pkg/models/flights"
 	"gateway/pkg/myjson"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
 
-func GetFlight(flightServiceAddress, flightNumber string) (*airport.Flight, error) {
-	requestURL := fmt.Sprintf("%s/api/v1/flight/%s", flightServiceAddress, flightNumber)
+func GetFlight(flightServiceAddress, flightNumber string) (*flights.Flight, error) {
+	requestURL := fmt.Sprintf("%s/api/v1/flights/%s", flightServiceAddress, flightNumber)
 
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
-		fmt.Println("Failed to create an http request")
+		log.Println("Failed to create an http request")
 		return nil, err
 	}
 
@@ -31,11 +33,11 @@ func GetFlight(flightServiceAddress, flightNumber string) (*airport.Flight, erro
 
 	defer func(Body io.ReadCloser) {
 		if err := Body.Close(); err != nil {
-			fmt.Println("Failed to close response body")
+			log.Println("Failed to close response body")
 		}
 	}(res.Body)
 
-	flight := &airport.Flight{}
+	flight := &flights.Flight{}
 	if err = json.NewDecoder(res.Body).Decode(flight); err != nil {
 		return nil, fmt.Errorf("Failed to decode response: %w", err)
 	}
@@ -43,14 +45,14 @@ func GetFlight(flightServiceAddress, flightNumber string) (*airport.Flight, erro
 	return flight, nil
 }
 
-func (h *GatewayHandler) GetAllFlightsInfo(flightServiceAddress string) (*[]airport.FlightInfo, error) {
+func GetAllFlightsInfo(flightServiceAddress string) (*[]flights.FlightInfo, error) {
 	requestURL := fmt.Sprintf("%s/api/v1/flights", flightServiceAddress)
-	h.Logger.Info(flightServiceAddress)
+	// h.Logger.Info(flightServiceAddress)
 
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	//h.Logger.Info(req, err)
 	if err != nil {
-		h.Logger.Errorln("Failed to create an http request")
+		log.Println("Failed to create an http request")
 		return nil, err
 	}
 
@@ -65,30 +67,30 @@ func (h *GatewayHandler) GetAllFlightsInfo(flightServiceAddress string) (*[]airp
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		h.Logger.Errorln(err.Error())
+		log.Println(err.Error())
 	}
 	res.Body.Close()
 
-	flights := new([]airport.Flight)
+	flightsSlice := new([]flights.Flight)
 
-	if err = myjson.From(body, flights); err != nil {
-		h.Logger.Infoln("BEDA ", flights, string(body))
+	if err = myjson.From(body, flightsSlice); err != nil {
+		log.Println("BEDA ", flightsSlice, string(body))
 		return nil, fmt.Errorf("Failed to decode response: %w", err)
 	}
 
-	flightsInfo := make([]airport.FlightInfo, 0)
-	for _, flight := range *flights {
-		airportFrom, err := h.GetAirport(flightServiceAddress, flight.FromAirportId)
+	flightsInfo := make([]flights.FlightInfo, 0)
+	for _, flight := range *flightsSlice {
+		airportFrom, err := GetAirport(flightServiceAddress, flight.FromAirportId)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get airport: %s", err)
 		}
 
-		airportTo, err := h.GetAirport(flightServiceAddress, flight.ToAirportId)
+		airportTo, err := GetAirport(flightServiceAddress, flight.ToAirportId)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get airport: %s", err)
 		}
 
-		fInfo := airport.FlightInfo{
+		fInfo := flights.FlightInfo{
 			FlightNumber: flight.FlightNumber,
 			FromAirport:  fmt.Sprintf("%s %s", airportFrom.City, airportFrom.Name),
 			ToAirport:    fmt.Sprintf("%s %s", airportTo.City, airportTo.Name),
@@ -102,17 +104,17 @@ func (h *GatewayHandler) GetAllFlightsInfo(flightServiceAddress string) (*[]airp
 	return &flightsInfo, nil
 }
 
-func (h *GatewayHandler) GetAirport(flightServiceAddress string, airportID int) (*airport.Airport, error) {
+func GetAirport(flightServiceAddress string, airportID int) (*airport.Airport, error) {
 	requestURL := fmt.Sprintf("%s/api/v1/airport/%d", flightServiceAddress, airportID)
 
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
-		h.Logger.Errorln("Failed to create an http request")
+		log.Println("Failed to create an http request")
 		return nil, err
 	}
 
 	client := &http.Client{
-		Timeout: 10 * time.Minute,
+		Timeout: 1 * time.Minute,
 	}
 
 	res, err := client.Do(req)
@@ -120,12 +122,11 @@ func (h *GatewayHandler) GetAirport(flightServiceAddress string, airportID int) 
 		return nil, fmt.Errorf("Failed request to flight service: %w", err)
 	}
 
-	body, _ := ioutil.ReadAll(res.Body)
-	defer func(Body io.ReadCloser) {
-		if err := Body.Close(); err != nil {
-			h.Logger.Errorln("Failed to close response body")
-		}
-	}(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	res.Body.Close()
 
 	airport := &airport.Airport{}
 

@@ -45,10 +45,9 @@ func main() {
 		}
 	}
 
-	// router.HandleFunc("/api/v1/tickets/{username}", GetTicketsByUsernameHandler).Methods("GET", "OPTIONS")
-
-	router.GET("/api/v1/tickets", mid.AccessLog(ticketHandler.BuyTicket, logger))
-	router.POST("/api/v1/tickets/:username", mid.AccessLog(ticketHandler.GetTicketsByUsername, logger))
+	router.POST("/api/v1/tickets", mid.AccessLog(ticketHandler.BuyTicket, logger))
+	router.GET("/api/v1/tickets/:username", mid.AccessLog(ticketHandler.GetTicketsByUsername, logger))
+	router.DELETE("/api/v1/tickets/:ticketUID", mid.AccessLog(ticketHandler.DeleteTicket, logger))
 
 	router.GET("/manage/health", HealthOK)
 
