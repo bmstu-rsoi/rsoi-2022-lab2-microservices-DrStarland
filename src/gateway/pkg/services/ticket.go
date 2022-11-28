@@ -84,8 +84,6 @@ func BuyTicket(tAddr, fAddr, bAddr, username string, info *tickets.BuyTicketInfo
 
 func _GetUserTickets(ticketsServiceAddress, username string) (*[]tickets.Ticket, error) {
 	requestURL := fmt.Sprintf("%s/api/v1/tickets/%s", ticketsServiceAddress, username)
-	// router.GET("/api/v1/tickets", mid.AccessLog(ticketHandler.BuyTicket, logger))
-	// router.POST("/api/v1/tickets/:username", mid.AccessLog(ticketHandler.GetTicketsByUsername, logger))
 
 	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
@@ -136,7 +134,6 @@ func CreateTicket(ticketsServiceAddress, username, flightNumber string, price in
 		log.Println(data)
 		return "", fmt.Errorf("encoding error: %w", err)
 	}
-	// log.Println(string(data))
 
 	req, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewReader(data))
 	if err != nil {

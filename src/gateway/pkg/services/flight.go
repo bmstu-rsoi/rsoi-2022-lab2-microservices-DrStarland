@@ -23,7 +23,7 @@ func GetFlight(flightServiceAddress, flightNumber string) (*flights.Flight, erro
 	}
 
 	client := &http.Client{
-		Timeout: 10 * time.Minute,
+		Timeout: 1 * time.Minute,
 	}
 
 	res, err := client.Do(req)

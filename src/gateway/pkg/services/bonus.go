@@ -20,7 +20,7 @@ func GetPrivilegeShortInfo(bonusServiceAddress, username string) (*privilege.Pri
 	}
 
 	client := &http.Client{
-		Timeout: 10 * time.Minute,
+		Timeout: 1 * time.Minute,
 	}
 
 	res, err := client.Do(req)
@@ -53,7 +53,7 @@ func GetPrivilegeHistory(bonusServiceAddress string, privilegeID int) (*[]privil
 	}
 
 	client := &http.Client{
-		Timeout: 10 * time.Minute,
+		Timeout: 1 * time.Minute,
 	}
 
 	res, err := client.Do(req)
@@ -100,7 +100,7 @@ func CreatePrivilegeHistoryRecord(bonusServiceAddress, uid, date, optype string,
 	}
 
 	client := &http.Client{
-		Timeout: 10 * time.Minute,
+		Timeout: 1 * time.Minute,
 	}
 
 	_, err = client.Do(req)
@@ -131,7 +131,7 @@ func CreatePrivilege(bonusServiceAddress, username string, balance int) error {
 	}
 
 	client := &http.Client{
-		Timeout: 10 * time.Minute,
+		Timeout: 1 * time.Minute,
 	}
 
 	res, err := client.Do(req)
