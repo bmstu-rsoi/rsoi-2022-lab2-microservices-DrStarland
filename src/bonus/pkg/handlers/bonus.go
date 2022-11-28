@@ -17,7 +17,7 @@ type BonusHandler struct {
 	BonusRepo privilege.Repository
 }
 
-func (h *BonusHandler) CreatePrivilegeHistoryHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *BonusHandler) CreatePrivilegeHistory(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	record := &privilege.PrivilegeHistory{}
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -39,7 +39,7 @@ func (h *BonusHandler) CreatePrivilegeHistoryHandler(w http.ResponseWriter, r *h
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *BonusHandler) CreatePrivilegeHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *BonusHandler) CreatePrivilege(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	record := &privilege.Privilege{}
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -53,16 +53,25 @@ func (h *BonusHandler) CreatePrivilegeHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	h.Logger.Infoln("Trying to create privilege")
 	if err = h.BonusRepo.CreatePrivilege(record); err != nil {
-		myjson.JsonError(w, http.StatusInternalServerError, err.Error())
-		return
+		h.Logger.Infoln("whar ne tak " + err.Error())
+		oldRecord, _ := h.BonusRepo.GetPrivilegeByUsername(record.Username)
+		record.Balance += oldRecord.Balance
+		h.Logger.Infoln(oldRecord, record)
+
+		if err = h.BonusRepo.UpdatePrivilege(record); err != nil {
+			h.Logger.Infoln("Chto ne tak " + err.Error())
+			myjson.JsonError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *BonusHandler) GetPrivilegeByUsernameHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	privilege, err := h.BonusRepo.GetPrvilegeByUsername(ps.ByName("username"))
+func (h *BonusHandler) GetPrivilegeByUsername(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	privilege, err := h.BonusRepo.GetPrivilegeByUsername(ps.ByName("username"))
 	if err != nil {
 		myjson.JsonError(w, http.StatusNotFound, err.Error())
 		return
@@ -71,7 +80,7 @@ func (h *BonusHandler) GetPrivilegeByUsernameHandler(w http.ResponseWriter, r *h
 	myjson.JsonResponce(w, http.StatusOK, privilege)
 }
 
-func (h *BonusHandler) GetHistoryByIDHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *BonusHandler) GetHistoryByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	history, err := h.BonusRepo.GetHistoryById(ps.ByName("privilegeID"))
 	if err != nil {
 		myjson.JsonError(w, http.StatusInternalServerError, err.Error())

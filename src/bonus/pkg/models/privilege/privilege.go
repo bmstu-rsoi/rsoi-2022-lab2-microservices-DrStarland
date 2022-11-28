@@ -17,8 +17,9 @@ type PrivilegeHistory struct {
 }
 
 type Repository interface {
-	GetPrvilegeByUsername(username string) (*Privilege, error)
+	GetPrivilegeByUsername(username string) (*Privilege, error)
 	GetHistoryById(ticketUID string) ([]*PrivilegeHistory, error)
 	CreateHistoryRecord(*PrivilegeHistory) error
 	CreatePrivilege(*Privilege) error
+	UpdatePrivilege(*Privilege) error
 }

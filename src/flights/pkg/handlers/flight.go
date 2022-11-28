@@ -17,7 +17,7 @@ type FlightsHandler struct {
 	AirportRepo airport.Repository
 }
 
-func (h *FlightsHandler) GetAllFlight(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func (h *FlightsHandler) GetAllFlights(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	flights, err := h.FlightRepo.GetAllFlights()
 	if err != nil {
 		myjson.JsonError(w, http.StatusInternalServerError, "flight service error: "+err.Error())

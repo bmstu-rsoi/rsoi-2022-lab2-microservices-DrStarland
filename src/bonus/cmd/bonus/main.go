@@ -47,10 +47,10 @@ func main() {
 		}
 	}
 
-	router.POST("/api/v1/bonus", mid.AccessLog(bonusHandler.CreatePrivilegeHistoryHandler, logger))
-	router.POST("/api/v1/bonus/privilege", mid.AccessLog(bonusHandler.CreatePrivilegeHandler, logger))
-	router.GET("/api/v1/bonus/:username", mid.AccessLog(bonusHandler.GetPrivilegeByUsernameHandler, logger))
-	router.GET("/api/v1/bonushistory/:privilegeID", mid.AccessLog(bonusHandler.GetHistoryByIDHandler, logger))
+	router.POST("/api/v1/bonus", mid.AccessLog(bonusHandler.CreatePrivilegeHistory, logger))
+	router.POST("/api/v1/bonus/privilege", mid.AccessLog(bonusHandler.CreatePrivilege, logger))
+	router.GET("/api/v1/bonus/:username", mid.AccessLog(bonusHandler.GetPrivilegeByUsername, logger))
+	router.GET("/api/v1/bonushistory/:privilegeID", mid.AccessLog(bonusHandler.GetHistoryByID, logger))
 
 	router.GET("/manage/health", HealthOK)
 
