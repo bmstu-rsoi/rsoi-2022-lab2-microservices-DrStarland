@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"gateway/pkg/models/flights"
 	"gateway/pkg/models/tickets"
 	"gateway/pkg/myjson"
@@ -255,7 +254,5 @@ func (h *GatewayHandler) GetPrivilege(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-
-	
 	myjson.JsonResponce(w, http.StatusOK, privilegeInfo)
 }
