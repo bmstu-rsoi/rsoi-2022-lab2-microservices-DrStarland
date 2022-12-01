@@ -28,7 +28,7 @@ func (h *GatewayHandler) GetAllFlights(w http.ResponseWriter, r *http.Request, p
 
 	flightsSlice, err := services.GetAllFlightsInfo(h.FlightServiceAddress)
 	if err != nil {
-		h.Logger.Errorln("failed to get response from flighst service: " + err.Error())
+		h.Logger.Errorln("failed to get response from flight service: " + err.Error())
 		myjson.JsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -72,9 +72,7 @@ func (h *GatewayHandler) GetAllFlights(w http.ResponseWriter, r *http.Request, p
 		TotalElements: len(flightsStripped),
 		Items:         &flightsStripped,
 	}
-
-	w.Header().Add("Content-Type", "application/json")
-
+	
 	myjson.JsonResponce(w, http.StatusOK, cars)
 }
 
@@ -98,14 +96,7 @@ func (h *GatewayHandler) GetUserTickets(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(ticketsInfo); err != nil {
-		h.Logger.Errorln("Failed to encode response: " + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
+	myjson.JsonResponce(w, http.StatusOK, ticketsInfo)
 }
 
 func (h *GatewayHandler) CancelTicket(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -264,12 +255,7 @@ func (h *GatewayHandler) GetPrivilege(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(privilegeInfo); err != nil {
-		log.Printf("Failed to encode response: %s\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
-	w.WriteHeader(http.StatusOK)
+	
+	myjson.JsonResponce(w, http.StatusOK, privilegeInfo)
 }
